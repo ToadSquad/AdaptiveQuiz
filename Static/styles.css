@@ -1,0 +1,29 @@
+body {
+    text-align: center;
+    margin: auto;
+    width: 45%;
+}
+
+.outer {
+    width: auto;
+    height: auto;
+    padding: 10px;
+    background: #D3D3D3;
+    border-radius: 10px; 
+}
+
+.inner {
+    padding: 30px;
+    background: #FFFFFF;
+    margin: auto; 
+    width: 75%;
+}
+
+.hidden {
+    display: none;
+}
+
+#question {
+    font: "helvectia","sans-serif"
+
+}

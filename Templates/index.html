@@ -1,0 +1,27 @@
+<html>
+<head>
+    <title>Programming Quiz</title>
+    <meta utf-8 />
+    <script type="text/javascript" src="{{ url_for('static', filename='jquery-3.6.0.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='main.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+
+</head>
+
+<body>
+    <div class="outer">
+        <div id="top" class="inner">
+            <div id="heading">
+                Welcome to the Quiz <br />
+            </div>
+            <button id="begin">Click here to begin</button>
+        </div>
+        <div id="question">
+            <div id="prompt"></div>
+            <form id="answers" action="POST" onsubmit="return false"></form>
+        </div>
+    </div>
+    
+</body>
+</html>

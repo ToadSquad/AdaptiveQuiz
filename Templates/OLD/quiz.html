@@ -1,0 +1,49 @@
+{%extends 'index.html' %}
+{% block content %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for msg in messages  %}
+        <p><strong> {{ msg }}</strong></p>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+<div class="container">
+      <div id="home" class="flex-center flex-column">
+
+
+        <h4>
+            Previous Question: {{correct}}
+            <form id='answer' method='POST'>
+                <h3>{{question}}</h3>
+
+                <!-- action must match your next URL -->
+                <div class="choice-container">
+
+                    <div class="choice-text">
+                        <input type='radio' name='answer-choice' id="r1" value="{{ans1}}" checked="checked"/> <label>{{ans1}}</label>
+                        </br>
+
+                        <input type='radio' name='answer-choice' id="r2" value="{{ans2}}" /> <label>{{ans2}}</label>
+                        </br>
+
+                        <input type='radio' name='answer-choice' id="r3" value="{{ans3}}" /> <label>{{ans3}}</label>
+                        </br>
+
+                        <input type='radio' name='answer-choice' id="r4" value="{{ans4}}" /> <label>{{ans4}}</label>
+                        </br>
+                    </div>
+
+                </div>
+
+
+                <input type='submit' value='Next' id="r7" formaction="/" />
+                <!--the 'value' is the word that will appear on your button.-->
+
+            </form>
+        </h4>
+
+      </div>
+    </div>
+
+    {% endblock %}
