@@ -67,6 +67,14 @@ def save_users():
             file.write(f'{user.cookie};{user.score}\n')
     print('Finished Saving Data\n')
 
+def save_users_db():
+    global cursor, conn
+    #assuming user exists
+    for user in users:
+        cursor.execute('select highscore from users SET  WHERE playername = "'+user.cookie+'";')
+        result = cursor.fetchall()
+        if(user.score>result[0]):
+            cursor.execute('update users SET highscore='+user.score+' WHERE playername = "'+user.cookie+'";')
 def save_users_on_timer():
     # Timer portion from https://stackoverflow.com/questions/474528/what-is-the-best-way-to-repeatedly-execute-a-function-every-x-seconds
     # by Dave Rove, used because it was more efficient than what we originally created
@@ -87,7 +95,12 @@ def load_users():
             users.append(User(info[0], int(info[1])))
             line = file.readline()
     print('Finished Loading Users.\n')
-
+def load_users_db():
+    global cursor, conn
+    cursor.execute('select * from users;')
+    result = cursor.fetchall()
+    for column in result:
+        users.append(User(column[0], int(column[3])))
 # Checks the given cell/string for a variant question, choosing randomly
                 # Only occurs if there is an option built into the question
                 # For right now, this is a copy paste until I can confirm
