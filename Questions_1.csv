@@ -1,29 +1,29 @@
-Question, ,Option1, ,Option2, ,Option3, ,Option4, ,Option5, ,Option6, ,Correct Answer, , , , ,
-,,,,,,,,,,,,,,,,,,,
-Assigned Difficulty: Easy,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,
-Which command is used to {copy/delete} files and directory in Linux?, ,mv, ,dp, ,cd, ,ls, ,Pwd, ,cls, ,{cp/rm}, , , , ,
-What option explains best use of the top command?, ,display only application memory, ,List all the proccess running in background, ,display processor activity that were terminated by kernel, ,Bring any activity to top of kernel process, ,Determines the path of any running task, ,To clear the screen, ,display processor activity and task managed by kernel in real-time, , , , ,  
-Which option is not used to access the LINUX system?, ,Telnet, ,SSH, ,Client SW, ,Nmap, ,dumb terminal, ,Wireshark, ,Facebook Messenger, , , , ,
-Which command is used for troubleshooting and Configuration?, ,telnet, ,Ipconfig, ,apt-update, ,IPaddr, ,Mv, ,Top, ,netstat, , , , ,  
-Which is the best word for difference in delay between two packets?, ,latency, ,delay, ,buffer, ,downloading, ,SIP, ,RTP, ,jitter, , , , ,
-What is the most common open source web server available for linux?, ,"""Samba""", ,XMPP, ,Quid, ,Pine, ,Github, ,Puppet, ,Apache, , , , , 
-Linux Command to shut down the computer in 30 minutes, ,shutdown, ,Reboot, ,sudo shutdown -f +30, ,sudo shutdown, ,sudo shutdown -r 30, ,sudo apt-get update, ,sudo shutdown -h +30, , , , , 
-What command allows a user to switch user contexts; and become another user?, ,su -a, ,SU, ,su --login, ,sw, ,sa, ,si, ,su, , , , , 
-What commands may a user on a Linux system run to quickly gather basic information about themselves?, ,id, ,users, ,display, ,who, ,where, ,whom, ,whoami, , , , ,
-,,,,,,,,,,,,,,,,,,,
-Assigned Difficulty: Medium,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,
-Which of these method call would find the {highest/lowest} value of x and y?, ,Math.maxNum(x;y),,Math.minNum(x;y), ,Math.largest(x;y), ,Math.smallest(x;y), ,Math.maximum(x;y), ,Math.minimum(x;y),,{Math.max(x;y)/Math.min(x;y)}, , , ,,
-Command used to reset the date and time, ,date [-option], ,date -U, ,date -m, ,cal [-option], ,date -R, ,date, ,date -s, , , , , 
-What command is used in order to make file executable?, ,Chmod 555, ,print, ,Chmod+y, ,Chmod +Z, ,-R-, ,=-X, ,Chmod + X, , , , ,
-Which protocol is best used for live streaming video?, ,TCP, ,ARP, ,IP, ,Ethernet, ,HTTPS, ,ICMP, ,UDP, , , , , 
-Which command is used to kill all system wide processes?, ,Kill -l, ,Kill, ,Reboot, ,Shutdown, ,pstree, ,top, ,killall, , , , ,
-,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,
-Assigned Difficulty: Hard,,,,,,,,,,,,,,,,,,,
-Which type of dynamic disk requires three or more dynamic disks with equal-sized unallocated spaces?, ,Simple, ,Stripped, ,Mirrored, ,MBR, ,Page File, ,Hard disk, ,RAID 5, , , , , 
-What is a hidden partition that contains a restorable copy of an installed OS?, ,Swap partition, ,Simple Volume, ,Dynamic Volume, ,Disk Management, ,Page File, ,Multiboot, , , , , , ,
-Which file system enables a user to adjust the cluster size?, ,FAT8, ,FAT16, ,FAT32,,FAT64,,Disk Management,, FAT128,,NTFS, , , , ,
-What is the path for main config file for network?, ,route -n/netstat, ,vgdisplay/lsblk, ,/etc/sysconfig/network, ,ifconfig/ip addr/ip link, ,/etc/inittab, ,who -r / runlevel, ,/etc/sysconfig/network-scripts/, , , , ,
-How do you tune the kernel?, ,ps -aux, ,mount -l | grep nfs, ,ifconfig, ,/etc/inittab, ,/etc/exports, ,df -h, ,edit /proc/sys file / Sysctl command, , , , ,
+Question,,Option1,,Option2,,Option3,,Option4,,Option5,,Option6,,Correct Answer,,Type,Difficulty (1-10)
+,,,,,,,,,,,,,,,,,
+Assigned Difficulty: Easy,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
+Which command is used to {copy/delete} files and directory in Linux?,,mv,,dp,,cd,,ls,,Pwd,,cls,,{cp/rm},,linux OS,1
+What option explains best use of the top command?,,display only application memory,,List all the proccess running in background,,display processor activity that were terminated by kernel,,Bring any activity to top of kernel process,,Determines the path of any running task,,To clear the screen,,display processor activity and task managed by kernel in real-time,,linux OS,1
+Which option is not used to access the LINUX system?,,Telnet,,SSH,,Client SW,,Nmap,,dumb terminal,,Wireshark,,Facebook Messenger,,linux OS,1
+Which command is used for troubleshooting and Configuration?,,telnet,,Ipconfig,,apt-update,,IPaddr,,Mv,,Top,,netstat,,linux OS,1
+Which is the best word for difference in delay between two packets?,,latency,,delay,,buffer,,downloading,,SIP,,RTP,,jitter,,linux OS,1
+What is the most common open source web server available for linux?,,Samba,,XMPP,,Quid,,Pine,,Github,,Puppet,,Apache,,linux OS,1
+Linux Command to shut down the computer in 30 minutes,,shutdown,,Reboot,,sudo shutdown -f +30,,sudo shutdown,,sudo shutdown -r 30,,sudo apt-get update,,sudo shutdown -h +30,,linux OS,1
+What command allows a user to switch user contexts; and become another user?,,su -a,,SU,,su --login,,sw,,sa,,si,,su,,linux OS,1
+What commands may a user on a Linux system run to quickly gather basic information about themselves?,,id,,users,,display,,who,,where,,whom,,whoami,,linux OS,1
+,,,,,,,,,,,,,,,,,
+Assigned Difficulty: Medium,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
+Which of these method call would find the {highest/lowest} value of x and y?,,Math.maxNum(x;y),,Math.minNum(x;y),,Math.largest(x;y),,Math.smallest(x;y),,Math.maximum(x;y),,Math.minimum(x;y),,{Math.max(x;y)/Math.min(x;y)},,linux OS,5
+Command used to reset the date and time,,date [-option],,date -U,,date -m,,cal [-option],,date -R,,date,,date -s,,linux OS,5
+What command is used in order to make file executable?,,Chmod 555,,print,,Chmod+y,,Chmod +Z,,-R-,,#NAME?,,Chmod + X,,linux OS,5
+Which protocol is best used for live streaming video?,,TCP,,ARP,,IP,,Ethernet,,HTTPS,,ICMP,,UDP,,linux OS,5
+Which command is used to kill all system wide processes?,,Kill -l,,Kill,,Reboot,,Shutdown,,pstree,,top,,killall,,linux OS,5
+,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,
+Assigned Difficulty: Hard,,,,,,,,,,,,,,,,linux OS,10
+Which type of dynamic disk requires three or more dynamic disks with equal-sized unallocated spaces?,,Simple,,Stripped,,Mirrored,,MBR,,Page File,,Hard disk,,RAID 5,,linux OS,10
+What is a hidden partition that contains a restorable copy of an installed OS?,,Swap partition,,Simple Volume,,Dynamic Volume,,Disk Management,,Page File,,Multiboot,,,,linux OS,10
+Which file system enables a user to adjust the cluster size?,,FAT8,,FAT16,,FAT32,,FAT64,,Disk Management,,FAT128,,NTFS,,linux OS,10
+What is the path for main config file for network?,,route -n/netstat,,vgdisplay/lsblk,,/etc/sysconfig/network,,ifconfig/ip addr/ip link,,/etc/inittab,,who -r / runlevel,,/etc/sysconfig/network-scripts/,,linux OS,10
+How do you tune the kernel?,,ps -aux,,mount -l | grep nfs,,ifconfig,,/etc/inittab,,/etc/exports,,df -h,,edit /proc/sys file / Sysctl command,,linux OS,10

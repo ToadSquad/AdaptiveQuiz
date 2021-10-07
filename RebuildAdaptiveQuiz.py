@@ -10,22 +10,28 @@ import threading, time, json, sys
 
 from flask import Flask, flash, render_template, request, session, redirect
 
+import mysql.connector
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 closed = False # Flag for save_thread
 save_thread = None # Contains the thread saving user information on interval
 questions = [] # Holds Question objects
-options = [] # Determines all the columns that contain options for answers
-difficulty_markers = [] # Marks where the first question in a given difficulty is
+options = [2, 4, 6, 8, 10, 12] # Determines all the columns that contain options for answers
+difficulty_markers = [0, 9, 14] # Marks where the first question in a given difficulty is
 users = [] # Stores users here until db is up and running
 current_questions = [] # Ties users to their current questions and deletes after
+conn = None
+cursor = None
 
 class Question:
-    def __init__(self, question, answer, options):
+    def __init__(self, question, answer, options,catergory,diffculty):
         self.question = question # The prompt
         self.answer = answer # The correct answer
         self.options = options # Array with all options to choose from
+        self.catergory = catergory
+        self.diffculty = diffculty
 
 class User:
     def __init__(self, cookie, score = 0):
@@ -103,7 +109,23 @@ def check_for_variant(cell, index, regex):
         cell = cell.replace('{', '')
         cell = cell.replace('}', '')
     return cell, index   
-
+#Get Database Login
+def login_database():
+    global cursor, conn
+    try:
+        conn = mysql.connector.connect(user='root', password='root',
+                              host='127.0.0.1',
+                              database='mysql')
+        cursor = conn.cursor()
+    except:
+        print("connection unsucessful")
+def get_questions():
+    global cursor, conn
+    cursor.execute('select * from question;')
+    result = cursor.fetchall()
+    for column in result:
+        options_array = [column[1],column[2], column[3], column[4], column[5], column[6]]
+        questions.append(Question(column[0],column[7],options_array,column[8],column[9]))
 # Reads through the entire CSV and pulls valid questions
 def read_file():
     with open('Questions_1.csv', newline = '') as csv_file:
@@ -113,7 +135,7 @@ def read_file():
 
         answer_index = None
         random_index = None # Used to detect changes in questions with variants
-
+        category_index = None
         # Get all the option columns and the answer index
         index = 0
         for cell in first_row:
@@ -121,6 +143,8 @@ def read_file():
                 options.append(index)
             elif cell.__contains__('Correct Answer'):
                 answer_index = index
+            elif cell.__contains__('Type'):
+                category_index = index
             index += 1
 
         for row in csv_reader: # Check each row in split CSV file
@@ -151,7 +175,7 @@ def read_file():
                 
                 # Append question to list
                 questions.append(Question(row[0], row[answer_index],
-                                          answer_options))
+                                          answer_options,row[category_index]))
 
             except IndexError:
                 print('List Complete\n')
@@ -304,10 +328,14 @@ def receive():
     return ''
 
 if __name__ == '__main__':
+    login_database()
     load_users()
-    read_file()
+    get_questions()
+    #read_file()
     save_thread = threading.Thread(target=save_users_on_timer)
     save_thread.start()
+    #database
+    
     # app.run(debug = False, host = '10.0.0.69', port = 5000)
     app.run(debug=False, port=5000)
     # Will only reach this point on the app being closed or interrupted
@@ -317,5 +345,6 @@ if __name__ == '__main__':
     for question in current_questions:
         question.user.timer_thread.join()
     save_thread.join()
+    conn.close() #Close database connection
     print('Program ended by KeyboardInterrupt.\n')
     sys.exit(0)
