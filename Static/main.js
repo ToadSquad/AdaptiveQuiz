@@ -150,6 +150,7 @@ function getCookie(cname) {
 function checkCookie() {
     var username = getCookie("username");
     if (username == "") {
+        //Redirect to Login/Registration page
         username = prompt("Please enter your name:", "");
         if (username != "" && username != null) {
             setCookie("username", username, 365);

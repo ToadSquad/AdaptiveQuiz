@@ -340,6 +340,32 @@ def receive():
         user.reduce_score()
     return ''
 
+#LOGIN PAGE
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    error = None
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        print(username)
+        print(password)
+        #Check if matches the database
+        
+
+    return render_template('login.html', error=error)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    error = None
+    if request.method == 'POST':
+        email = request.form['email']
+        username = request.form['username']
+        password = request.form['password']
+        print(username)
+        print(password)
+        #Check if matches the database
+
+    return render_template('register.html', error=error)
 if __name__ == '__main__':
     login_database()
     load_users()
