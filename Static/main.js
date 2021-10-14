@@ -3,7 +3,7 @@ const next = $("<input id='next' type='submit' value='Continue'/>")
 var timer = null
 
 $(document).ready(function () {
-    checkCookie()
+    //checkCookie()
     $("#question").fadeOut(1) // Do quick fadeout to set state properly
     $("#begin").click(function () {
         $("#top").fadeOut(500)

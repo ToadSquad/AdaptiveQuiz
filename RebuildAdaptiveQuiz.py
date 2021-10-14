@@ -8,12 +8,29 @@ import csv, random, re, os
 from itertools import islice
 import threading, time, json, sys
 
-from flask import Flask, flash, render_template, request, session, redirect
-
+from flask import Flask, flash, render_template, request, session, redirect, url_for
+from flask_session import Session
 import mysql.connector
+
+from datetime import timedelta
+
+
+
+
+
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+#Sessioning
+#SESSION_TYPE = 'sqlalchemy'
+
+app.secret_key = 'waddup'
+sessionsecret = 'hello'
+app.config['PERMANENT_SESSION_LIFETIME'] =  timedelta(days=31)
+
+#threads
+threads = {}
 
 closed = False # Flag for save_thread
 save_thread = None # Contains the thread saving user information on interval
@@ -22,6 +39,7 @@ options = [2, 4, 6, 8, 10, 12] # Determines all the columns that contain options
 difficulty_markers = [0, 9, 14] # Marks where the first question in a given difficulty is
 users = [] # Stores users here until db is up and running
 current_questions = [] # Ties users to their current questions and deletes after
+active_sessions = 0
 conn = None
 cursor = None
 
@@ -32,7 +50,8 @@ class Question:
         self.options = options # Array with all options to choose from
         self.catergory = catergory
         self.diffculty = diffculty
-
+#REPLACED WITH DICT IN session data
+'''
 class User:
     def __init__(self, cookie, score = 0):
         self.cookie = cookie
@@ -48,7 +67,7 @@ class User:
     def add_score(self):
         self.score += 1
         print('New Score: ' + str(self.score) + '\n')
-
+'''
 class CurrentQuestion:
 
     kill_thread = False
@@ -84,7 +103,7 @@ def save_users_on_timer():
         time.sleep(120 - (time.time() - start) % 120)
         start = time.time()
         save_users()
-
+'''
 def load_users():
     print('Loading Users...\n')
     with open('users.txt', 'r') as file:
@@ -95,6 +114,7 @@ def load_users():
             users.append(User(info[0], int(info[1])))
             line = file.readline()
     print('Finished Loading Users.\n')
+'''
 def load_users_db():
     global cursor, conn
     cursor.execute('select * from users;')
@@ -214,7 +234,7 @@ def choose_question(score):
 
 
 def get_quiz_field_values(user):
-    chosen_question = choose_question(user.score)
+    chosen_question = choose_question(user["score"])
     
     # Get the 4 choices to present to user
     option_copy = chosen_question.options.copy()
@@ -275,7 +295,7 @@ def await_answer(user_question):
 
         if time.time() - start_time > 45:
             user = user_question.user
-            user.reduce_score()
+            session["data"]["score"] += -1
             remove_current_question(user_question)
             break
 
@@ -287,25 +307,29 @@ def await_answer(user_question):
 # Displays the main home page
 @app.route('/')
 def home():
-    return render_template('index.html')
+    #check if logged in
+    if(not('name' in session.keys())):
+        return redirect(url_for("login"))
+    else:
+        return render_template('index.html')
 
 # Send the next question to the proper user
 @app.route('/send', methods=['POST'])
 def send():
     # Find correct user in list or create user
-    user = find_user(request.cookies.get('username'))
+    #user = find_user(request.cookies.get('username'))
 
     # Get a question and possible answer list
-    question, options_list = get_quiz_field_values(user)
+    question, options_list = get_quiz_field_values(session["data"])
 
     # Create tie between question and user
-    current_question = CurrentQuestion(user, question)
+    current_question = CurrentQuestion(session["data"]["username"], question)
     current_questions.append(current_question)
 
     # Start thread to determine when to auto-fail question
-    user.timer_thread = threading.Thread(target=await_answer, args=[current_question])
-    user.timer_thread.start()
-
+    threads[session["data"]["username"]] = threading.Thread(target=await_answer, args=[current_question])
+    threads[session["data"]["username"]].start()
+    
     return json.dumps({
         'prompt': question.question,
         'ans1': options_list[0],
@@ -318,10 +342,9 @@ def send():
 @app.route('/receive', methods=["POST"])
 def receive():
     # Find correct user in list
-    user = find_user(request.cookies.get('username'))
 
     # Find active question for user
-    user_question = find_current_question(user)
+    user_question = find_current_question(session["data"])
 
     print(f'\n{user_question}\n{str(request.form.get("answer-choice"))}')
 
@@ -331,13 +354,13 @@ def receive():
     
     # Kill user's thread and join to receive
     user_question.kill_thread = True
-    user.timer_thread.join()
+    session["data"]["timer"].join()
 
     # Determine if score needs to increase or decrease
     if check_correct(user_question.question, request.form.get('answer-choice')):
-        user.add_score()
+        session["data"]["score"] += 1
     elif not closed:
-        user.reduce_score()
+        session["data"]["score"] -= 1
     return ''
 
 #LOGIN PAGE
@@ -350,7 +373,25 @@ def login():
         print(username)
         print(password)
         #Check if matches the database
-        
+        cursor.execute('select * from users WHERE username="'+username+'"')
+        result = cursor.fetchall()
+        if(len((result))==0):
+            error = "User Does Not Exist"
+            return render_template('login.html', error=error)
+        elif(password != result[0][2]):
+            error = "Password is incorrect"
+            return render_template('login.html', error=error)
+        else:
+            #Sessioning for users
+            session.permanent = True
+            session["name"] = username
+            userDict = {}
+            userDict['username'] = username
+            userDict['score'] = 0
+            userDict['timer'] = None
+            session["data"] = userDict
+            return redirect(url_for("home"))
+            #bring to homepage
 
     return render_template('login.html', error=error)
 
@@ -361,14 +402,28 @@ def register():
         email = request.form['email']
         username = request.form['username']
         password = request.form['password']
+        cursor.execute('select * from users WHERE username="'+username+'"')
+        result = cursor.fetchall()
+        if(len((result))>0):
+            error = "Username Already Exists"
+            return render_template('register.html', error=error)
+        else:
+            #need to hash the password and check requirements
+            cursor.execute('INSERT INTO users VALUES ("'+email+'", "'+username+'", "'+password+'", 0);')
+            conn.commit()
+            return redirect(url_for("login"))
         print(username)
         print(password)
         #Check if matches the database
-
+        
     return render_template('register.html', error=error)
+@app.route("/logout")
+def logout():
+    session.pop("name", None)
+    return redirect("/")
+
 if __name__ == '__main__':
     login_database()
-    load_users()
     get_questions()
     #read_file()
     save_thread = threading.Thread(target=save_users_on_timer)
