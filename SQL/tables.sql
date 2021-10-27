@@ -5,3 +5,7 @@ CREATE TABLE question (prompt VARCHAR(250), option1 VARCHAR(250), option2 VARCHA
 
 #User Table
 CREATE TABLE users (playername VARCHAR(20), username VARCHAR(20), playerpassword VARCHAR(20), highscore INT);
+
+#User Data
+USE mysql;
+CREATE TABLE userData (id INT NOT NULL AUTO_INCREMENT, prompt VARCHAR(250), category VARCHAR(20), lengthTime INT, username VARCHAR(20), correct BOOL, PRIMARY KEY (Personid));

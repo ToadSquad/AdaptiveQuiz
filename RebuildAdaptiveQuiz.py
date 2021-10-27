@@ -40,6 +40,9 @@ difficulty_markers = [0, 9, 14] # Marks where the first question in a given diff
 users = [] # Stores users here until db is up and running
 current_questions = [] # Ties users to their current questions and deletes after
 active_sessions = 0
+user_data = {} # Stores user scores and performance
+question_data = {} # Stores question data ex. times, accuracy 
+activeUsers = {} # Stores users logged in
 conn = None
 cursor = None
 
@@ -50,24 +53,17 @@ class Question:
         self.options = options # Array with all options to choose from
         self.catergory = catergory
         self.diffculty = diffculty
-#REPLACED WITH DICT IN session data
-'''
+
 class User:
-    def __init__(self, cookie, score = 0):
-        self.cookie = cookie
-        self.score = score
-        self.timer_thread = None
-
-    def reduce_score(self):
-        if self.score > 0:
-            self.score -= 1
-        print('New Score: ' + str(self.score) + '\n')
-        
-
-    def add_score(self):
-        self.score += 1
-        print('New Score: ' + str(self.score) + '\n')
-'''
+    def __init__(self,username):
+        self.username = username
+        self.score = 0
+        self.question = None
+        self.questions = []
+        self.kill_thread = False
+        self.thread = None
+        self.questionData = []
+    
 class CurrentQuestion:
 
     kill_thread = False
@@ -79,69 +75,40 @@ class CurrentQuestion:
     def __str__(self):
         return f'{self.user.cookie}, {self.question.question}'
 
-def save_users():
-    print('\nSaving Data...')
-    with open('users.txt', 'w') as file:
-        for user in users:
-            file.write(f'{user.cookie};{user.score}\n')
-    print('Finished Saving Data\n')
-
 def save_users_db():
     global cursor, conn
     #assuming user exists
-    for user in users:
-        cursor.execute('select highscore from users SET  WHERE playername = "'+user.cookie+'";')
-        result = cursor.fetchall()
-        if(user.score>result[0]):
-            cursor.execute('update users SET highscore='+user.score+' WHERE playername = "'+user.cookie+'";')
+    print("saving")
+    for username in activeUsers:
+        if(len(activeUsers[username].questionData)>0):
+            for record in activeUsers[username].questionData:
+                print('INSERT INTO userData VALUES (NULL,"'+record["prompt"]+'", "'+record["cat"]+'", '+str(record["length"])+', "'+username+'", '+str(record["correct"])+');')
+                cursor.execute('INSERT INTO userData VALUES (NULL,"'+record["prompt"]+'", "'+record["cat"]+'", '+str(record["length"])+', "'+username+'", '+str(record["correct"])+');')
+                conn.commit()
+        activeUsers[username].questionData = []      
+
+# Initiates a save every 2 minutes
 def save_users_on_timer():
     # Timer portion from https://stackoverflow.com/questions/474528/what-is-the-best-way-to-repeatedly-execute-a-function-every-x-seconds
     # by Dave Rove, used because it was more efficient than what we originally created
     start = time.time()
     while not closed:
         # Initiates a save every 2 minutes
-        time.sleep(120 - (time.time() - start) % 120)
+        time.sleep(10 - (time.time() - start) % 10)
         start = time.time()
-        save_users()
-'''
-def load_users():
-    print('Loading Users...\n')
-    with open('users.txt', 'r') as file:
-        lines = file.readlines()
-        for line in lines: 
-            print(str(line))
-            info = line.split(';')
-            users.append(User(info[0], int(info[1])))
-            line = file.readline()
-    print('Finished Loading Users.\n')
-'''
+        #save_users()
+        save_users_db()
+
 def load_users_db():
     global cursor, conn
     cursor.execute('select * from users;')
     result = cursor.fetchall()
     for column in result:
-        users.append(User(column[0], int(column[3])))
+        activeUsers[column[1]] =  User(column[1])
 # Checks the given cell/string for a variant question, choosing randomly
                 # Only occurs if there is an option built into the question
                 # For right now, this is a copy paste until I can confirm
                 #   it works.
-def check_for_variant(cell, index, regex):
-    if cell.__contains__('{'):
-
-        question_choice = re.search(regex, cell) 
-        question_choice_string = question_choice.group(1)
-        question_choice_split = question_choice_string.split('/')
-
-        random_variant = None
-        if index is None:
-            random_variant = random.choice(question_choice_split)
-            index = question_choice_split.index(random_variant)
-        else:
-            random_variant = question_choice_split[index]
-        cell = cell.replace(question_choice_string, random_variant)
-        cell = cell.replace('{', '')
-        cell = cell.replace('}', '')
-    return cell, index   
 #Get Database Login
 def login_database():
     global cursor, conn
@@ -159,59 +126,6 @@ def get_questions():
     for column in result:
         options_array = [column[1],column[2], column[3], column[4], column[5], column[6]]
         questions.append(Question(column[0],column[7],options_array,column[8],column[9]))
-# Reads through the entire CSV and pulls valid questions
-def read_file():
-    with open('Questions_1.csv', newline = '') as csv_file:
-        # Open csv and split into nested arrays
-        csv_reader = csv.reader(csv_file, delimiter=',', quotechar='|')
-        first_row = next(csv_reader) # Need to check separately
-
-        answer_index = None
-        random_index = None # Used to detect changes in questions with variants
-        category_index = None
-        # Get all the option columns and the answer index
-        index = 0
-        for cell in first_row:
-            if cell.__contains__('Option'):
-                options.append(index)
-            elif cell.__contains__('Correct Answer'):
-                answer_index = index
-            elif cell.__contains__('Type'):
-                category_index = index
-            index += 1
-
-        for row in csv_reader: # Check each row in split CSV file
-            try:
-                # Skips current row from being added to questions
-                if row[0] == '':
-                    continue
-
-                # Checks where difficulty begins
-                if row[0].__contains__('Assigned Difficulty:'):
-                    difficulty_markers.append(len(questions))
-                    continue
-                
-                # Checking question
-                row[0], random_index = check_for_variant(row[0], random_index,
-                    r"\{([A-Za-z0-9_\/]+)\}") 
-                if random_index is not None: 
-                    # If question changed, answer needs to change too
-                    row[answer_index], random_index = check_for_variant(
-                        row[answer_index], random_index, r"\{([A-Za-z0-9_\.\;\(\)\/]+)\}")
-                    random_index = None
-
-                # Gets options from option columns for given question
-                answer_options = []
-                for index in options:
-                    if row[index] != '':
-                        answer_options.append(row[index])
-                
-                # Append question to list
-                questions.append(Question(row[0], row[answer_index],
-                                          answer_options,row[category_index]))
-
-            except IndexError:
-                print('List Complete\n')
 
 # Chooses a random question in the provided range
 def get_question(min, max):
@@ -251,52 +165,21 @@ def get_quiz_field_values(user):
     random.shuffle(presented_options)
     return chosen_question, presented_options
 
-# Determines if correct answer given
-def check_correct(question, provided_answer):
-    return question.answer == provided_answer
 
-# Eventually replace with db calls ##
-def create_user(cookie):
-    user = User(cookie) ##
-    users.append(user) ##
-    return user
-
-# Eventually replace with db calls ##
-def find_user(cookie):
-    user = None
-    for loop_user in users:
-        if loop_user.cookie != cookie:
-            continue
-        user = loop_user
-    if user is None:
-        user = create_user(cookie)
-    return user
-
-# Finds thread associated with user
-def find_current_question(user):
-    for current_question in current_questions:
-        if current_question.user != user:
-            continue
-        return current_question
-    return None
-
-# Removes thread
-def remove_current_question(user_question):
-    current_questions.remove(user_question)
-    user_question.user.timer_thread = None
-
-# Waits for user to send an answer
-def await_answer(user_question):
+# Waits for user to send an answer #Currently using timer in main.js
+def await_answer(user):
+    print("awaiting answer")
     start_time = time.time()
     while True:
-        if user_question.kill_thread:
-            remove_current_question(user_question)
+        if user.kill_thread:
+            print("killed")
+            user.question = None
             break
 
         if time.time() - start_time > 45:
-            user = user_question.user
-            session["data"]["score"] += -1
-            remove_current_question(user_question)
+            print("timed out")
+            user.question = None
+            user.score -= 1
             break
 
         if closed:
@@ -316,19 +199,24 @@ def home():
 # Send the next question to the proper user
 @app.route('/send', methods=['POST'])
 def send():
-    # Find correct user in list or create user
-    #user = find_user(request.cookies.get('username'))
-
     # Get a question and possible answer list
     question, options_list = get_quiz_field_values(session["data"])
 
     # Create tie between question and user
-    current_question = CurrentQuestion(session["data"]["username"], question)
-    current_questions.append(current_question)
+    #current_question = CurrentQuestion(session["data"]["username"], question)
+    #current_questions.append(current_question)
+    #Rework
+    try:
+        user = activeUsers[session["data"]["username"]]
+    except:
+        #If user rejoins from session
+        activeUsers[session["data"]["username"]] =  User(session["data"]["username"])
+        user = activeUsers[session["data"]["username"]]
+    user.question = question
 
     # Start thread to determine when to auto-fail question
-    threads[session["data"]["username"]] = threading.Thread(target=await_answer, args=[current_question])
-    threads[session["data"]["username"]].start()
+    #user.thread = threading.Thread(target=await_answer, args=[user])
+    #user.thread.start()
     
     return json.dumps({
         'prompt': question.question,
@@ -342,28 +230,50 @@ def send():
 @app.route('/receive', methods=["POST"])
 def receive():
     # Find correct user in list
-
+    try:
+        user = activeUsers[session["data"]["username"]]
+    except:
+        #If user rejoins from session
+        activeUsers[session["data"]["username"]] =  User(session["data"]["username"])
+        user = activeUsers[session["data"]["username"]]
     # Find active question for user
-    user_question = find_current_question(session["data"])
 
-    print(f'\n{user_question}\n{str(request.form.get("answer-choice"))}')
+    #user_question = find_current_question(session["data"])
 
-    if user_question is None:
+    print(f'\n{user.question}\n{str(request.form.get("answer-choice"))}')
+
+    if user.question is None:
         print('error, user_question is none\n')
         return ''
     
-    # Kill user's thread and join to receive
-    user_question.kill_thread = True
-    session["data"]["timer"].join()
+    
 
     # Determine if score needs to increase or decrease
-    if check_correct(user_question.question, request.form.get('answer-choice')):
-        session["data"]["score"] += 1
+    if (user.question.answer == request.form.get('answer-choice')):
+        print("correct")
+        user.score += 1
+        dataDict = {}
+        dataDict["prompt"] = user.question.question
+        dataDict["cat"] = user.question.catergory
+        dataDict["length"] = 0
+        dataDict["correct"] = True
+        user.questionData.append(dataDict)
     elif not closed:
-        session["data"]["score"] -= 1
+        print("incorrect")
+        dataDict = {}
+        dataDict["prompt"] = user.question.question
+        dataDict["cat"] = user.question.catergory
+        dataDict["length"] = 0
+        dataDict["correct"] = False
+        user.questionData.append(dataDict)
+        user.score -= 1
+    
+    # Kill user's thread and join to receive
+    #user.kill_thread = True
+    #user.thread.join()
     return ''
 
-#LOGIN PAGE
+#LOGIN PAGE login.html
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -390,11 +300,13 @@ def login():
             userDict['score'] = 0
             userDict['timer'] = None
             session["data"] = userDict
+            activeUsers[username] = User(username)
             return redirect(url_for("home"))
             #bring to homepage
 
     return render_template('login.html', error=error)
 
+#Register Page register.html
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     error = None
@@ -425,7 +337,6 @@ def logout():
 if __name__ == '__main__':
     login_database()
     get_questions()
-    #read_file()
     save_thread = threading.Thread(target=save_users_on_timer)
     save_thread.start()
     #database

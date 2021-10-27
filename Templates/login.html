@@ -9,7 +9,7 @@
       <h1>Login</h1>
       <br>
       <form action="" method="post">
-        <input type="text" placeholder="Username" name="username" value="{{
+        <input type="text" id = "user" placeholder="Username" name="username" value="{{
           request.form.username }}">
          <input type="password" placeholder="Password" name="password" value="{{
           request.form.password }}">
@@ -23,6 +23,13 @@
               console.log("clicked");
               window.location = "/register";
           }
+          document.onsubmit = function(){
+            console.log("cookie set");
+            username = document.getElementById('user').value;
+            var now = new Date();
+            var time = now.getTime() + 9642240000;
+            now.setTime(time);
+            document.cookie = "username="+username+'; expires='+now.toUTCString().replace("GMT","UTC");};
       </script>
       {% if error %}
         <p class="error"><strong>Error:</strong> {{ error }}

@@ -1,7 +1,7 @@
 const submit = $("<input id='finish' type = 'submit' value = 'Submit and Finish' /> ")
 const next = $("<input id='next' type='submit' value='Continue'/>")
 var timer = null
-
+var qTimer = null
 $(document).ready(function () {
     //checkCookie()
     $("#question").fadeOut(1) // Do quick fadeout to set state properly
@@ -20,6 +20,8 @@ $(window).on('unload', function () {
 // Gets the next question for the user
 // If the question is valid, use variableName.propertyName to get values
 function getQuestion(timeout) {
+    clearInterval(qTimer);
+    questionTimeout();
     response = null
     $.ajax({
         url: "/send",
@@ -30,16 +32,31 @@ function getQuestion(timeout) {
             occupyQuestionField(response)
             setTimeout(function () { $("#question").fadeIn(500) }, timeout)
             // This will only go off once per method call
-            timer = setInterval(function () {
+            /*timer = setInterval(function () {
                 finish()
             }, 30000)
-        },
+            */
+        },  
         error: function (response) {
             console.log("error" + response)
         }
     })
 }
-
+//Timer for the questions
+function questionTimeout(){
+    console.log("Timer Started");
+    let time = 45;
+    timeH = document.querySelector('h');
+    timeH.innerHTML = `00:${time}`;
+    qTimer = setInterval(function(){ 
+        time--; 
+        timeH.innerHTML = `00:${time}`;
+        if (time == 0){
+            nextQuestion();
+        }
+    }, 1000);
+    
+}
 // Fills appropriate areas in question field with data from backend
 function occupyQuestionField(question) {
     $("#prompt").append(question.prompt)
@@ -68,8 +85,8 @@ function occupyQuestionField(question) {
 
     $("#answers").append(next)
     $("#answers").append(submit)
-    submit.click(function () { console.log('finish button clicked'); finish() })
-    next.click(function () { console.log('next button clicked'); nextQuestion() })
+    submit.click(function () { console.log('finish button clicked'); finish(); })
+    next.click(function () { console.log('next button clicked'); nextQuestion(); })
 }
 
 /*// Displays the next question
@@ -90,6 +107,9 @@ function clearQuestion() {
 }
 
 function nextQuestion() {
+    
+    
+    console.log('nextQ');
     clearInterval(timer)
     timer = null
     sendAnswer()

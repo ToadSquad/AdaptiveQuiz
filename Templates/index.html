@@ -10,6 +10,21 @@
 </head>
 
 <body>
+    <div class ="container">
+        <h>0:00</h>
+    </div>
+    <div id="user" class="usercontrol">
+        
+        <b>user: </b>
+        
+        <script>
+            var x = document.getElementById("user");
+            x.innerHTML += document.cookie.split("=")[1];
+            console.log(x.text);
+        </script>
+        <a href="/logout">logout</a>
+       
+    </div>
     <div class="outer">
         <div id="top" class="inner">
             <div id="heading">
@@ -17,17 +32,11 @@
             </div>
             <button id="begin">Click here to begin</button>
         </div>
+        
         <div id="question">
             <div id="prompt"></div>
             <form id="answers" action="POST" onsubmit="return false"></form>
         </div>
-        <script>
-            function questionTimout(){
-                console.log("Timer Started");
-                
-            }
-            window.onload = questionTimout;
-        </script>
     </div>
     
 </body>

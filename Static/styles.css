@@ -2,6 +2,7 @@ body {
     text-align: center;
     margin: auto;
     width: 45%;
+    font-size: 18px;
 }
 
 .outer {
@@ -10,6 +11,7 @@ body {
     padding: 10px;
     background: #D3D3D3;
     border-radius: 10px; 
+    font-size: 18px;
 }
 
 .inner {
@@ -17,13 +19,26 @@ body {
     background: #FFFFFF;
     margin: auto; 
     width: 75%;
+    font-size: 18px;
 }
-
+.container {
+    width: auto;
+    height: auto;
+    background-color: gray;
+    font-size: 27px;
+}
+.usercontrol {
+    position: absolute;
+    top: 8px;
+    right: 16px;
+    font-size: 18px;
+}
 .hidden {
     display: none;
 }
 
 #question {
-    font: "helvectia","sans-serif"
+    font: "helvectia","sans-serif";
+    font-size: 27px;
 
 }
