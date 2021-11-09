@@ -55,13 +55,13 @@ class Question:
         self.catergory = catergory
         self.diffculty = diffculty
 class DyanmicQuestion:
-    def __init__(self, variantDesc, variantType, typeOptions, descOptions,grouping,diffculty):
+    def __init__(self, variantDesc, variantType, typeOptions, descOptions,grouping,difficulty):
         self.variantDesc = variantDesc 
         self.variantType = variantType 
         self.typeOptions = typeOptions
         self.descOptions = descOptions 
         self.grouping = grouping
-        self.diffculty = diffculty
+        self.difficulty = difficulty
 
 class User:
     def __init__(self,username):
@@ -71,6 +71,7 @@ class User:
         self.questions = []
         self.kill_thread = False
         self.thread = None
+        self.questionsDone = []
         self.questionData = []
     
 class CurrentQuestion:
@@ -148,27 +149,62 @@ def get_questions():
         
         #Parse through and add to data lists
         for columnData in resultData:
-            typeOptions.append(column[0])
-            descOptions.append(column[1])
+            typeOptions.append(columnData[0])
+            descOptions.append(columnData[1])
         dynamicQuestions.append(DyanmicQuestion(column[0],column[1],typeOptions,descOptions,grouping,column[3]))
+    #Add dynamic Questions to Question List
+    for dynamicQuestion in dynamicQuestions:
+        numQuestions = len(dynamicQuestion.typeOptions)
+        for qNum in range(numQuestions):
+            #Random choice between type and desc
+            variant = random.choice(("type","desc"))
+            
+            if variant == "type":
+                prompt = dynamicQuestion.variantType.replace("()",dynamicQuestion.typeOptions[qNum])
+                answer = dynamicQuestion.descOptions[qNum]
+                optionsList = dynamicQuestion.descOptions.copy()
+                optionsList.remove(answer)
+                options_array = []
+                for num in range(6):
+                    choice = random.choice(optionsList)
+                    options_array.append(choice)
+                    optionsList.remove(choice)
+            if variant == "desc":
+                prompt = dynamicQuestion.variantDesc.replace("()",dynamicQuestion.descOptions[qNum])
+                answer = dynamicQuestion.typeOptions[qNum]
+                optionsList = dynamicQuestion.typeOptions.copy()
+                optionsList.remove(answer)
+                options_array = []
+                for num in range(6):
+                    choice = random.choice(optionsList)
+                    options_array.append(choice)
+                    optionsList.remove(choice)
 
-# Chooses a random question in the provided range
-def get_question(min, max):
-    return questions[random.choice(range(min, max))]
 
+            questions.append(Question(prompt,answer,options_array,dynamicQuestion.grouping,dynamicQuestion.difficulty))
+         
+
+# Question chosen through ranomization within point thresholds
 def choose_question(score):
-    # Question chosen through ranomization within point thresholds
-    chosen_question = None
+    #User
+    try:
+        user = activeUsers[session["data"]["username"]]
+    except:
+        #If user rejoins from session
+        activeUsers[session["data"]["username"]] =  User(session["data"]["username"])
+        user = activeUsers[session["data"]["username"]]
+    
+    tempQuestions = questions.copy()
+    #Remove users done questions from pool
+    for question in tempQuestions:
+        if question in user.questionsDone:
+            tempQuestions.remove(question)
+    
 
-    if score >= difficulty_markers[0] and score < difficulty_markers[1]:
-        chosen_question = get_question(difficulty_markers[0],
-                                          difficulty_markers[1])
-    elif score >= difficulty_markers[1] and score < difficulty_markers[2]:
-        chosen_question = get_question(difficulty_markers[1],
-                                          difficulty_markers[2])
-    else:
-        chosen_question = get_question(difficulty_markers[2],
-                                          len(questions))
+    #Random choice until scoring system is done
+    chosen_question = tempQuestions[random.choice(range(0, len(tempQuestions)-1))]
+
+    user.questionsDone.append(chosen_question)
     return chosen_question
 
 
