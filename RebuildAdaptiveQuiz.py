@@ -35,6 +35,7 @@ threads = {}
 closed = False # Flag for save_thread
 save_thread = None # Contains the thread saving user information on interval
 questions = [] # Holds Question objects
+dynamicQuestions = []
 options = [2, 4, 6, 8, 10, 12] # Determines all the columns that contain options for answers
 difficulty_markers = [0, 9, 14] # Marks where the first question in a given difficulty is
 users = [] # Stores users here until db is up and running
@@ -52,6 +53,14 @@ class Question:
         self.answer = answer # The correct answer
         self.options = options # Array with all options to choose from
         self.catergory = catergory
+        self.diffculty = diffculty
+class DyanmicQuestion:
+    def __init__(self, variantDesc, variantType, typeOptions, descOptions,grouping,diffculty):
+        self.variantDesc = variantDesc 
+        self.variantType = variantType 
+        self.typeOptions = typeOptions
+        self.descOptions = descOptions 
+        self.grouping = grouping
         self.diffculty = diffculty
 
 class User:
@@ -126,6 +135,22 @@ def get_questions():
     for column in result:
         options_array = [column[1],column[2], column[3], column[4], column[5], column[6]]
         questions.append(Question(column[0],column[7],options_array,column[8],column[9]))
+    #Get Dynamic Questions
+    cursor.execute('select * from dynamicQuestions;')
+    result = cursor.fetchall()
+    for column in result:
+        grouping = column[2]
+        cursor.execute('select * from dataDynamicQuestions WHERE questionGrouping="'+grouping+'";')
+        resultData = cursor.fetchall()
+
+        typeOptions = []
+        descOptions = []
+        
+        #Parse through and add to data lists
+        for columnData in resultData:
+            typeOptions.append(column[0])
+            descOptions.append(column[1])
+        dynamicQuestions.append(DyanmicQuestion(column[0],column[1],typeOptions,descOptions,grouping,column[3]))
 
 # Chooses a random question in the provided range
 def get_question(min, max):
@@ -239,7 +264,8 @@ def receive():
     # Find active question for user
 
     #user_question = find_current_question(session["data"])
-
+    time = request.args.get('time')
+    print(time)
     print(f'\n{user.question}\n{str(request.form.get("answer-choice"))}')
 
     if user.question is None:
@@ -255,7 +281,7 @@ def receive():
         dataDict = {}
         dataDict["prompt"] = user.question.question
         dataDict["cat"] = user.question.catergory
-        dataDict["length"] = 0
+        dataDict["length"] = 45 - int(time)
         dataDict["correct"] = True
         user.questionData.append(dataDict)
     elif not closed:
@@ -263,7 +289,7 @@ def receive():
         dataDict = {}
         dataDict["prompt"] = user.question.question
         dataDict["cat"] = user.question.catergory
-        dataDict["length"] = 0
+        dataDict["length"] = 45- int(time)
         dataDict["correct"] = False
         user.questionData.append(dataDict)
         user.score -= 1

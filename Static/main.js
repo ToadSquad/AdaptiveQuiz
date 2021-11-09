@@ -2,6 +2,7 @@ const submit = $("<input id='finish' type = 'submit' value = 'Submit and Finish'
 const next = $("<input id='next' type='submit' value='Continue'/>")
 var timer = null
 var qTimer = null
+let time = 45;
 $(document).ready(function () {
     //checkCookie()
     $("#question").fadeOut(1) // Do quick fadeout to set state properly
@@ -45,7 +46,7 @@ function getQuestion(timeout) {
 //Timer for the questions
 function questionTimeout(){
     console.log("Timer Started");
-    let time = 45;
+    time = 45;
     timeH = document.querySelector('h');
     timeH.innerHTML = `00:${time}`;
     qTimer = setInterval(function(){ 
@@ -119,7 +120,7 @@ function nextQuestion() {
 
 function sendAnswer() {
     $.ajax({
-        url: "/receive",
+        url: "/receive?time="+time.toString(),
         type: "POST",
         data: {
             'answer-choice': $('input[name="ans"]:checked').val()

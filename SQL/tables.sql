@@ -8,4 +8,4 @@ CREATE TABLE users (playername VARCHAR(20), username VARCHAR(20), playerpassword
 
 #User Data
 USE mysql;
-CREATE TABLE userData (id INT NOT NULL AUTO_INCREMENT, prompt VARCHAR(250), category VARCHAR(20), lengthTime INT, username VARCHAR(20), correct BOOL, PRIMARY KEY (Personid));
+CREATE TABLE userData (id INT NOT NULL AUTO_INCREMENT, prompt VARCHAR(250), category VARCHAR(20), lengthTime INT, username VARCHAR(20), correct BOOL, PRIMARY KEY (id));
