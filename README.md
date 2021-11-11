@@ -66,5 +66,8 @@ Users represent the players of the quiz, upon first entering the webpage http://
 
 # Question Distrubution
 To be worked on...
+The idea is to use a users internal score combined with the questions difficulty to adaptively change the difficulty of the questions based on users performance, there is potential for other options to distribute questions aswell.
+![Probability](https://user-images.githubusercontent.com/36092187/141339596-27f1b8e6-e75a-43bb-99ed-c2113bc56e86.png)
+
  
  
