@@ -45,3 +45,26 @@
  lavoiet2@wit.edu
  pantas@wit.edu
  kattels@wit.edu
+ 
+ # How it Works
+ 
+ # Question Sourcing
+ Questions are inputted into a mysql database, and accessed through the get_questions() function onload.
+ 
+ Types of Questions:
+ -Dynamic
+ -Original 
+ 
+ Inputing Questions to the Database:
+ 
+ Use the populateDatabaseFromCsv.py for Original Questions and csvtoDatabase.py for Dynamic Questions until the csvtoDatabase.py is updated.
+ 
+ Questions are loaded into the questions list when the RebuildAdaptiveQuiz.py is run and holds the questions in class form, the dynamic questions are built and placed into the list aswell.
+ 
+# Users
+Users represent the players of the quiz, upon first entering the webpage http://127.0.0.1:5000/ index the user is riderected to a login page where they will signup an account that will be added to the database table users. When a user logs in flask sessioning is used to maintain access to the users class object and is easily accessed in the activeUsers dict with the players username such as activeUsers[session["data"]["username"]] (session["data"]["username"] is kept client side as a encrypted cookie)
+
+# Question Distrubution
+To be worked on...
+ 
+ 
