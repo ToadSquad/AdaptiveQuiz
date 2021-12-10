@@ -14,8 +14,11 @@ import mysql.connector
 
 from datetime import timedelta
 
-
-
+#ML
+from sklearn import datasets
+from sklearn import tree
+from sklearn import svm
+from sklearn.model_selection import train_test_split as tts
 
 
 
@@ -73,18 +76,13 @@ class User:
         self.thread = None
         self.questionsDone = []
         self.questionData = []
+        self.internalScore = 0 #0-100 scale the higher the score the more hard questions
+
+
+
+
     
-class CurrentQuestion:
-
-    kill_thread = False
-
-    def __init__(self, user, question):
-        self.user = user
-        self.question = question
-
-    def __str__(self):
-        return f'{self.user.cookie}, {self.question.question}'
-
+#saves every 10 seconds from save_users_on_timer()
 def save_users_db():
     global cursor, conn
     #assuming user exists
@@ -92,10 +90,10 @@ def save_users_db():
     for username in activeUsers:
         if(len(activeUsers[username].questionData)>0):
             for record in activeUsers[username].questionData:
-                print('INSERT INTO userData VALUES (NULL,"'+record["prompt"]+'", "'+record["cat"]+'", '+str(record["length"])+', "'+username+'", '+str(record["correct"])+');')
-                cursor.execute('INSERT INTO userData VALUES (NULL,"'+record["prompt"]+'", "'+record["cat"]+'", '+str(record["length"])+', "'+username+'", '+str(record["correct"])+');')
+                print('INSERT INTO userData VALUES (NULL,"'+record["prompt"]+'", "'+record["cat"]+'", '+str(record["length"])+', '+str(record["userScore"])+','+str(record["questionDiff"])+',"'+username+'", '+str(record["correct"])+');')
+                cursor.execute('INSERT INTO userData VALUES (NULL,"'+record["prompt"]+'", "'+record["cat"]+'", '+str(record["length"])+', '+str(record["userScore"])+','+str(record["questionDiff"])+',"'+username+'", '+str(record["correct"])+');')
                 conn.commit()
-        activeUsers[username].questionData = []      
+        activeUsers[username].questionData = [] #Empty uploaded question data
 
 # Initiates a save every 2 minutes
 def save_users_on_timer():
@@ -182,8 +180,75 @@ def get_questions():
 
 
             questions.append(Question(prompt,answer,options_array,dynamicQuestion.grouping,dynamicQuestion.difficulty))
-         
 
+def get_user_data():
+    print("fetching data")
+
+# Choose Question ML
+def choose_question_ml():
+    #User
+    try:
+        user = activeUsers[session["data"]["username"]]
+    except:
+        #If user rejoins from session
+        activeUsers[session["data"]["username"]] =  User(session["data"]["username"])
+        user = activeUsers[session["data"]["username"]]
+    featureData = []
+    labelData = []
+    #Get users Data
+    cursor.execute('select * from userData WHERE username="'+user.username+'"')
+    result = cursor.fetchall()
+    for column in result:
+        featureData.append([column[4],column[5]])
+        labelData.append([column[7]])
+    #Predict users probability of success for each question, data columns
+
+    
+
+
+
+    #Make a prediction on a per question basis
+    tempQuestions = questions.copy()
+    #Remove users done questions from pool
+    for question in questions:
+        if question in user.questionsDone:
+            tempQuestions.remove(question)
+    
+    if(len(result)<10):
+        #Random choice until 10 questions answered
+        return tempQuestions[random.choice(range(0, len(tempQuestions)-1))]
+
+    questionDict = {}
+    firstRun = True
+    for x in range(100):
+        features = featureData
+        labels = labelData
+
+        train_feats, test_feats, train_labels, test_labels = tts(features, labels, test_size=0.2)
+                    
+        #clf = svm.SVC()
+        clf = tree.DecisionTreeClassifier()
+                    
+        #train
+        clf.fit(train_feats, train_labels)
+
+        for question in tempQuestions:
+
+            if(firstRun):
+                questionDict[question.question] = 0
+            
+            test_feats = [[user.internalScore, question.diffculty]]#feature for this question
+                   
+            #predictions
+            questionDict[question.question] += clf.predict(test_feats)[0]/100
+        if(firstRun):
+            firstRun=False
+    prompt = sorted(questionDict.items(), key = lambda kv:(kv[1], kv[0]))[-1][0] #Sorts dict by the predicted values and chooses the largest one
+    for q in tempQuestions:
+        if q.question == prompt:
+            user.questionsDone.append(q)
+            return q
+    
 # Question chosen through ranomization within point thresholds
 def choose_question(score):
     #User
@@ -209,7 +274,7 @@ def choose_question(score):
 
 
 def get_quiz_field_values(user):
-    chosen_question = choose_question(user["score"])
+    chosen_question = choose_question_ml() #choose_question(user["score"])
     
     # Get the 4 choices to present to user
     option_copy = chosen_question.options.copy()
@@ -313,12 +378,17 @@ def receive():
     # Determine if score needs to increase or decrease
     if (user.question.answer == request.form.get('answer-choice')):
         print("correct")
-        user.score += 1
+        
         dataDict = {}
         dataDict["prompt"] = user.question.question
         dataDict["cat"] = user.question.catergory
         dataDict["length"] = 45 - int(time)
+        dataDict["userScore"] = user.internalScore
+        dataDict["questionDiff"] = user.question.diffculty
         dataDict["correct"] = True
+
+        user.score += 1 #Add users score
+        user.internalScore += 1
         user.questionData.append(dataDict)
     elif not closed:
         print("incorrect")
@@ -326,9 +396,12 @@ def receive():
         dataDict["prompt"] = user.question.question
         dataDict["cat"] = user.question.catergory
         dataDict["length"] = 45- int(time)
+        dataDict["userScore"] = user.internalScore
+        dataDict["questionDiff"] = user.question.diffculty
         dataDict["correct"] = False
         user.questionData.append(dataDict)
-        user.score -= 1
+        user.score -= 1 #Subtract Users score
+        user.internalScore += 1
     
     # Kill user's thread and join to receive
     #user.kill_thread = True

@@ -1,0 +1,17 @@
+qType,qDesc,questionGrouping
+make,Recompile a group of programs,dir/file
+man,view the help manual,dir/file
+mapfile,Read lines from standard input into an indexed array variable ,dir/file
+mkdir,Create new folder(s),dir/file
+mkfifo,Make FIFOs (named pipes),dir/file
+mkfile,Make a file,dir/file
+mkisofs,Create a hybrid ISO9660/JOLIET/HFS filesystem,dir/file
+mknod,Make block or character special files,dir/file
+mktemp,Make a temporary file,dir/file
+more,Display output one screen at a time,dir/file
+most,Browse or page through a text file,dir/file
+mount,Mount a file system,dir/file
+mtools,Manipulate MS-DOS files,dir/file
+mtr,Network diagnostics (traceroute/ping),dir/file
+mv,Move or rename files or directories,dir/file
+mmv,Mass Move and rename (files),dir/file
